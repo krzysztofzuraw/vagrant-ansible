@@ -1,0 +1,9 @@
+---
+
+- hosts: nodejs
+  become: yes
+  tasks:
+    - name: install vim
+      apt:
+        name: vim
+        state: present
