@@ -1,0 +1,68 @@
+---
+
+- name: ensure packages are installed
+  apt:
+    name: "{{item}}"
+  with_items:
+    - binutils
+    - libproj-dev
+    - gdal-bin
+    - git
+    - python-virtualenv
+    - build-essential
+    - postgresql-server-dev-all
+    - supervisor
+    - nginx
+
+- name: ensure git repo is present
+  git:
+    repo: https://github.com/krzysztofzuraw/geodjango-leaflet.git
+    dest: /opt/geodjango
+
+- name: create virtualenv
+  command: virtualenv /opt/venv -p python3.4 creates="/opt/venv"
+
+- name: install requirements
+  pip:
+    requirements: /opt/geodjango/requirements.txt
+    executable: /opt/venv/bin/pip
+
+- name: migrate django application
+  django_manage:
+    command: migrate
+    virtualenv: /opt/venv
+    app_path: /opt/geodjango
+
+- name: load django initial data
+  django_manage:
+    command: load_inital_voivodeships
+    virtualenv: /opt/venv
+    app_path: /opt/geodjango
+
+- name: collect static files
+  django_manage:
+    command: collectstatic
+    virtualenv: /opt/venv
+    app_path: /opt/geodjango
+
+- name: ensure config dir for supervisor extists
+  file:
+    path: /etc/supervisor/conf.d
+    state: directory
+
+- name: ensure supervisor config is present
+  template:
+    src: templates/supervisord.conf.j2
+    dest: /etc/supervisor/conf.d/geodjango.conf
+  notify: reread supervisor
+
+- name: remove default nginx configuration
+  file:
+    name: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: ensure nginx config is present
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/sites-enabled/geodjango.conf
+  notify: restart nginx

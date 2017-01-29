@@ -1,0 +1,35 @@
+---
+
+
+- name: ensure apt cache is up to date
+  apt: update_cache=yes
+
+- name: ensure packages are installed
+  apt:
+    name: "{{item}}"
+  with_items:
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+    - postgresql-9.3-postgis-2.1
+    - python3-dev
+    - python-dev
+
+- name: ensure database is created
+  become_user: postgres
+  postgresql_db:
+    name: geodjango
+
+- name: ensure user has access to database
+  become_user: postgres
+  postgresql_user:
+    db: geodjango
+    name: geodjango
+    password: geodjango
+    priv: ALL
+
+- name: enable postgis for database
+  become_user: postgres
+  postgresql_ext:
+    name: postgis
+    db: geodjango

@@ -1,0 +1,14 @@
+---
+
+- name: ensure redis packages are installed
+  apt:
+    name: "{{item}}"
+  with_items:
+    - redis-server
+
+- name: ensure redis is started
+  become: true
+  service:
+    name: redis-server
+    state: started
+    enabled: yes

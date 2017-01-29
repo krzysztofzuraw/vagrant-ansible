@@ -1,0 +1,11 @@
+---
+
+- name: reread supervisor
+  supervisorctl:
+    name: geodjango_leaflet
+    state: present
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

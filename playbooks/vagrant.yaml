@@ -2,8 +2,8 @@
 
 - hosts: vagrant-ansible
   become: yes
-  tasks:
-    - name: install vim
-      apt:
-        name: vim
-        state: present
+
+  roles:
+    - db
+    - geodjango
+    - redis
